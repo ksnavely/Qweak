@@ -21,11 +21,10 @@ def connectMySQL(run_num):
     '''Read in yaml configuration file and return a connection using the data from the file.'''
 
     #Open connection and read it into directory
-    mysql_db = None
-    with open('qweak_db_%s_read_cred.yml'%(run_num)) as f:
+    with open('qweak_db_{0}_read_cred.yml'.format(run_num)) as f:
         mysql_db = yaml.safe_load(f)
-        if mysql_db == None:
-            print('Cannot open qweak_db_run1_read_cred.yml, is the config correct?')
+        if mysql_db is None:
+            raise Exception('Cannot open qweak_db_run1_read_cred.yml, is the config correct?')
     return pymysql.connect(**mysql_db)
 
 #Temp function for sql query of interest
@@ -40,22 +39,22 @@ if __name__ == '__main__':
         connection = connectMySQL(sys.argv[1])
     except pymysql.err.OperationalError:
         print('Failed to open connection to the database!')
-    else:
-        cursor = connection.cursor()
-        
-        #Pass the sql query function the slug range of interest
-        query = sql_query(sys.argv[2],sys.argv[3])        
 
-        #Execute query and collect all rows.
-        cursor.execute(query)
-        sql_result = cursor.fetchall()
+    cursor = connection.cursor()
+    
+    #Pass the sql query function the slug range of interest
+    query = sql_query(sys.argv[2],sys.argv[3])        
 
-        #Fetchall returns list of tuples, throw into Pandas dataframe for quick export to csv.
-        data = pd.DataFrame(np.asarray(sql_result))
-        data.to_csv(sys.argv[4], index=False, header=False)
-        #print(query)
+    #Execute query and collect all rows.
+    cursor.execute(query)
+    sql_result = cursor.fetchall()
 
-        #Close connections
-        cursor.close()
-        connection.close
+    #Fetchall returns list of tuples, throw into Pandas dataframe for quick export to csv.
+    data = pd.DataFrame(np.asarray(sql_result))
+    data.to_csv(sys.argv[4], index=False, header=False)
+    #print(query)
+
+    #Close connections
+    cursor.close()
+    connection.close
 
